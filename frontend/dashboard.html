@@ -307,7 +307,25 @@
             });
         }
 
-        (function(g){var db,f,ca,m,p,q,t,s,u,v,a,b,e=function(){window.google.maps.importLibrary=function(a){return Promise.resolve(google.maps[a])}};if(g.google&&g.google.maps)e();else{f=function(a,b,d,h){var l=document.getElementsByTagName("script")[0];l.parentNode.insertBefore(a,l)};ca=function(a,b){var d=document.createElement("script");d.src=a;d.async=!0;d.defer=!0;f(d)};g.google=g.google||{};g.google.maps=g.google.maps||{};ca("https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap");e()}})(window);
+        (function(g){
+            var db,f,ca,m,p,q,t,s,u,v,a,b,e=function(){window.google.maps.importLibrary=function(a){return Promise.resolve(google.maps[a])}};
+            if(g.google&&g.google.maps)e();
+            else{
+                f=function(a,b,d,h){var l=document.getElementsByTagName("script")[0];l.parentNode.insertBefore(a,l)};
+                ca=function(a,b){var d=document.createElement("script");d.src=a;d.async=!0;d.defer=!0;f(d)};
+                g.google=g.google||{};
+                g.google.maps=g.google.maps||{};
+                var key = localStorage.getItem("GOOGLE_MAPS_API_KEY");
+                if(!key){
+                    key = prompt("Please enter your Google Maps API Key:");
+                    if(key){
+                        localStorage.setItem("GOOGLE_MAPS_API_KEY", key.trim());
+                    }
+                }
+                ca("https://maps.googleapis.com/maps/api/js?key=" + (key || "YOUR_API_KEY") + "&callback=initMap");
+                e();
+            }
+        })(window);
 
         window.initMap = initMap;
     </script>
