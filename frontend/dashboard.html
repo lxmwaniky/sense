@@ -32,7 +32,6 @@
             background-color: #0c0f1d; 
         }
 
-        /* Futuristic HUD stats panel */
         .stats-overlay {
             position: absolute; 
             top: 20px; 
@@ -43,11 +42,11 @@
             padding: 25px;
             border-radius: 16px; 
             border: 1px solid var(--card-border); 
-            width: 320px;
+            width: calc(100% - 40px);
+            max-width: 320px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(234, 67, 53, 0.15);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            pointer-events: auto;
         }
 
         .stats-overlay::before {
@@ -124,6 +123,29 @@
             0% { opacity: 0.4; }
             100% { opacity: 1; }
         }
+
+        @media (max-width: 600px) {
+            .stats-overlay {
+                top: auto;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                max-width: 100%;
+                border-radius: 20px 20px 0 0;
+                border-left: none;
+                border-right: none;
+                border-bottom: none;
+                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+                padding: 20px;
+            }
+            .stats-overlay::before {
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+            }
+            #map {
+                height: calc(100vh - 180px);
+            }
+        }
     </style>
 </head>
 <body>
@@ -151,25 +173,91 @@
 
     <div id="map"></div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
-        // 1. Configuration (Set your Project ID)
         const firebaseConfig = { projectId: "musicstudy-ke" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         let map;
-        const markers = [];
+        const beacons = [];
 
-        // 3. Initialize Google Maps
+        // Custom HTML Overlay for pulsing map beacons
+        class BeaconOverlay extends google.maps.OverlayView {
+            constructor(position, map) {
+                super();
+                this.position = position;
+                this.setMap(map);
+            }
+
+            onAdd() {
+                this.div = document.createElement('div');
+                this.div.style.position = 'absolute';
+                this.div.innerHTML = `
+                    <div class="beacon-core"></div>
+                    <div class="beacon-ring"></div>
+                    <div class="beacon-ring-outer"></div>
+                `;
+
+                const styleId = 'beacon-styles';
+                if (!document.getElementById(styleId)) {
+                    const style = document.createElement('style');
+                    style.id = styleId;
+                    style.innerHTML = `
+                        .beacon-core {
+                            width: 14px; height: 14px; background: var(--google-red, #EA4335); border-radius: 50%;
+                            position: absolute; transform: translate(-50%, -50%);
+                            box-shadow: 0 0 10px var(--google-red, #EA4335), 0 0 20px var(--google-red, #EA4335);
+                            border: 2px solid #ffffff;
+                        }
+                        .beacon-ring {
+                            width: 36px; height: 36px; border: 2px solid var(--google-red, #EA4335); border-radius: 50%;
+                            position: absolute; transform: translate(-50%, -50%);
+                            animation: beacon-pulse 2s infinite linear;
+                            opacity: 0;
+                        }
+                        .beacon-ring-outer {
+                            width: 60px; height: 60px; border: 1.5px dashed var(--google-blue, #4285F4); border-radius: 50%;
+                            position: absolute; transform: translate(-50%, -50%);
+                            animation: beacon-pulse 2s infinite linear;
+                            animation-delay: 0.6s;
+                            opacity: 0;
+                        }
+                        @keyframes beacon-pulse {
+                            0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0.9; }
+                            100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                this.getPanes().overlayMouseTarget.appendChild(this.div);
+            }
+
+            draw() {
+                const projection = this.getProjection();
+                const pos = projection.fromLatLngToDivPixel(this.position);
+                if (pos && this.div) {
+                    this.div.style.left = pos.x + 'px';
+                    this.div.style.top = pos.y + 'px';
+                }
+            }
+
+            onRemove() {
+                if (this.div) {
+                    this.div.parentNode.removeChild(this.div);
+                    this.div = null;
+                }
+            }
+        }
+
         async function initMap() {
             const { Map } = await google.maps.importLibrary("maps");
             
             map = new Map(document.getElementById("map"), {
-                center: { lat: -1.2863, lng: 36.8172 }, // Default to Nairobi
+                center: { lat: -1.2863, lng: 36.8172 },
                 zoom: 13,
                 mapId: "SENSE_DASHBOARD_1",
                 styles: [
@@ -190,18 +278,20 @@
             startListening();
         }
 
-        // 4. Listen for real-time Firestore updates
         function startListening() {
             const tinglesCol = collection(db, "tingles");
             const statusEl = document.getElementById("status");
             const countEl = document.getElementById("signal-count");
 
             onSnapshot(tinglesCol, (snapshot) => {
-                let count = 0;
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === "added") {
                         const data = change.doc.data();
-                        addMarker(data);
+                        const pos = new google.maps.LatLng(data.lat, data.lng);
+                        
+                        const beacon = new BeaconOverlay(pos, map);
+                        beacons.push(beacon);
+                        
                         statusEl.innerText = `${new Date().toLocaleTimeString()}`;
                     }
                 });
@@ -209,29 +299,7 @@
             });
         }
 
-        // 5. Add Pin to Map
-        function addMarker(data) {
-            const marker = new google.maps.Marker({
-                position: { lat: data.lat, lng: data.lng },
-                map: map,
-                title: "Emergency Signal",
-                animation: google.maps.Animation.DROP,
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    fillColor: '#EA4335',
-                    fillOpacity: 0.9,
-                    strokeColor: '#ffffff',
-                    strokeWeight: 2,
-                    scale: 12
-                }
-            });
-            markers.push(marker);
-            
-            // Pan map to latest signal
-            map.panTo({ lat: data.lat, lng: data.lng });
-        }
-
-        // Load Maps API
+        // TODO: Remove or replace the API key configuration post-demo
         (function(g){var db,f,ca,m,p,q,t,s,u,v,a,b,e=function(){window.google.maps.importLibrary=function(a){return Promise.resolve(google.maps[a])}};if(g.google&&g.google.maps)e();else{f=function(a,b,d,h){var l=document.getElementsByTagName("script")[0];l.parentNode.insertBefore(a,l)};ca=function(a,b){var d=document.createElement("script");d.src=a;d.async=!0;d.defer=!0;f(d)};g.google=g.google||{};g.google.maps=g.google.maps||{};ca("https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap");e()}})(window);
 
         window.initMap = initMap;

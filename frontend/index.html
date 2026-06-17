@@ -40,7 +40,6 @@
             position: relative;
         }
 
-        /* Web HUD background */
         #hud-canvas {
             position: absolute;
             top: 0;
@@ -52,7 +51,6 @@
             opacity: 0.4;
         }
 
-        /* Spidey-sense edge threat warning indicators */
         .sense-edge {
             position: absolute;
             top: 0;
@@ -76,7 +74,6 @@
             100% { box-shadow: inset 0 0 60px rgba(234, 67, 53, 0.8); border-color: var(--spider-red); }
         }
 
-        /* Glassmorphic console card */
         .console-card {
             position: relative;
             z-index: 10;
@@ -129,7 +126,6 @@
             letter-spacing: 3px;
         }
 
-        /* Pulsing radar ring structure */
         .trigger-wrapper {
             position: relative;
             width: 220px;
@@ -174,7 +170,6 @@
             }
         }
 
-        /* Premium Spidey Trigger Button */
         #spidey-btn {
             position: relative;
             z-index: 5;
@@ -232,7 +227,6 @@
             text-transform: uppercase;
         }
 
-        /* Status & Log info display */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -258,7 +252,6 @@
             box-shadow: 0 0 8px var(--google-blue);
         }
 
-        /* Dynamic classes for status states */
         .status-badge.searching {
             border-color: var(--google-yellow);
             color: var(--google-yellow);
@@ -304,7 +297,6 @@
             border: 1px solid rgba(255, 255, 255, 0.03);
         }
 
-        /* Spinning loader logic */
         .spinner {
             display: none;
             width: 32px;
@@ -322,6 +314,25 @@
 
         .loading #spidey-btn .btn-icon { display: none; }
         .loading #spidey-btn .spinner { display: block; }
+
+        @media (max-width: 480px) {
+            .console-card {
+                padding: 25px 20px;
+                max-width: 340px;
+            }
+            .trigger-wrapper {
+                width: 180px;
+                height: 180px;
+                margin-bottom: 20px;
+            }
+            #spidey-btn {
+                width: 140px;
+                height: 140px;
+            }
+            .app-title {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -348,10 +359,8 @@
             <button id="spidey-btn" type="button" aria-label="Send tingle signal">
                 <div class="spinner" id="btn-spinner"></div>
                 <svg class="btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <!-- High-tech geometric Spider icon -->
                     <path d="M12 2C11.5 2 11 3.5 11 5V6.5C11 6.8 11.2 7 11.5 7H12.5C12.8 7 13 6.8 13 6.5V5C13 3.5 12.5 2 12 2Z"/>
                     <path d="M12 8C9.2 8 7 10.2 7 13C7 14.5 7.6 15.8 8.7 16.8L6.2 19.3C5.8 19.7 5.8 20.3 6.2 20.7C6.6 21.1 7.2 21.1 7.6 20.7L10.1 18.2C10.7 18.7 11.3 19 12 19C12.7 19 13.3 18.7 13.9 18.2L16.4 20.7C16.8 21.1 17.4 21.1 17.8 20.7C18.2 20.3 18.2 19.7 17.8 19.3L15.3 16.8C16.4 15.8 17 14.5 17 13C17 10.2 14.8 8 12 8ZM12 16C10.3 16 9 14.7 9 13C9 11.3 10.3 10 12 10C13.7 10 15 11.3 15 13C15 14.7 13.7 16 12 16Z"/>
-                    <!-- Spider legs (geometric lines) -->
                     <path d="M5.5 8C4.5 6.5 2.5 5.5 1.5 5C1 4.8 0.5 5 0.2 5.5C-0.1 6 0 6.5 0.5 6.8C1.5 7.3 3.2 8.3 4.2 9.5C4.5 9.8 4.9 10 5.2 10C5.5 10 5.8 9.8 6 9.5C6.3 9 6 8.5 5.5 8Z"/>
                     <path d="M18.5 8C19.5 6.5 21.5 5.5 22.5 5C23 4.8 23.5 5 23.8 5.5C24.1 6 24 6.5 23.5 6.8C22.5 7.3 20.8 8.3 19.8 9.5C19.5 9.8 19.1 10 18.8 10C18.5 10 18.2 9.8 18 9.5C17.7 9 18 8.5 18.5 8Z"/>
                     <path d="M4.5 12C3.2 11.5 1.5 11.2 0.5 11C-0.1 10.9 -0.5 11.4 -0.5 12C-0.5 12.6 0 13 0.5 13.1C1.5 13.3 3.2 13.6 4.5 14C5 14.1 5.5 13.8 5.5 13C5.5 12.2 5 12.1 4.5 12Z"/>
@@ -365,7 +374,7 @@
     </div>
 
 <script>
-    // Config matches original variables
+    // TODO: Update INGESTOR_URL and API_KEY before production deployment.
     const INGESTOR_URL = "http://localhost:8080/tingle";
     const API_KEY = "dev-secret-key"; 
     
@@ -377,8 +386,8 @@
     const statusLabel = document.getElementById('status-label');
     const spideySenseOverlay = document.getElementById('spidey-sense-overlay');
 
+    // Manages active status styles and log text
     function updateState(state, text, logText) {
-        // Clear classes
         statusBadge.classList.remove('ready', 'searching', 'transmitting');
         
         if (state === 'searching') {
@@ -402,7 +411,7 @@
         if (logText) consoleLog.innerText = `> ${logText}`;
     }
 
-    // Function to actually send the data
+    // Handles transmission to ingestor service
     async function sendSignal(lat, lng) {
         updateState('transmitting', 'Broadcasting', `Signal ready. Pitching to: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
         try {
@@ -433,7 +442,7 @@
 
         if (!navigator.geolocation) {
             console.warn("Geolocation not supported. Using Mock.");
-            setTimeout(() => sendSignal(-1.2863, 36.8172), 800); // Nairobi fallback
+            setTimeout(() => sendSignal(-1.2863, 36.8172), 800);
             return;
         }
 
@@ -449,7 +458,6 @@
         );
     });
 
-    // High tech canvas line grid background
     const canvas = document.getElementById('hud-canvas');
     const ctx = canvas.getContext('2d');
     
@@ -460,7 +468,7 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
 
-    // Draw a subtle spiderweb/cyber-grid pattern
+    // Renders the background radar grid
     function drawGrid() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = 'rgba(66, 133, 244, 0.04)';
@@ -470,14 +478,12 @@
         const centerY = canvas.height / 2;
         const maxRadius = Math.max(canvas.width, canvas.height);
 
-        // Radar/Sonar Concentric circles
         for (let r = 100; r < maxRadius; r += 100) {
             ctx.beginPath();
             ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
             ctx.stroke();
         }
 
-        // Radiating spokes (Spiderweb-style)
         ctx.strokeStyle = 'rgba(234, 67, 53, 0.03)';
         const spokes = 12;
         for (let i = 0; i < spokes; i++) {
@@ -492,8 +498,6 @@
         }
     }
     
-    // Animate subtle movement on background grid
-    let offset = 0;
     function animate() {
         drawGrid();
         requestAnimationFrame(animate);
