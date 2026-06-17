@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project S.E.N.S.E. | Emergency</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #1a1a1a; margin: 0; font-family: sans-serif; }
+        #spidey-btn { 
+            width: 200px; height: 200px; border-radius: 50%; border: 8px solid #f00;
+            background: #b30000; color: white; font-weight: bold; font-size: 1.5rem;
+            cursor: pointer; box-shadow: 0 0 20px rgba(255,0,0,0.5);
+        }
+        #spidey-btn:active { transform: scale(0.95); background: #800000; }
+    </style>
+</head>
+<body>
+
+    <button id="spidey-btn">SEND TINGLE</button>
+
+<script>
+    const INGESTOR_URL = "http://localhost:8080/tingle";
+    const btn = document.getElementById('spidey-btn');
+
+    // Function to actually send the data
+    async function sendSignal(lat, lng) {
+        console.log(`Sending Signal: ${lat}, ${lng}`);
+        try {
+            const response = await fetch(INGESTOR_URL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ lat, lng })
+            });
+            if (response.ok) {
+                alert("SIGNAL SENT TO THE WEB!");
+            } else {
+                alert("Server error: " + response.status);
+            }
+        } catch (err) {
+            console.error("Network error:", err);
+            alert("Check if Ingestor is running on 8080!");
+        }
+        btn.innerText = "SEND TINGLE";
+    }
+
+    btn.addEventListener('click', () => {
+        btn.innerText = "LOCATING...";
+
+        if (!navigator.geolocation) {
+            console.warn("Geolocation not supported. Using Mock.");
+            sendSignal(-1.2863, 36.8172); // Nairobi fallback
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                sendSignal(pos.coords.latitude, pos.coords.longitude);
+            },
+            (err) => {
+                console.warn("Geolocation blocked/failed. Using Mock Location for Demo.");
+                // For your talk: Use a location near the Google office!
+                sendSignal(-1.2863, 36.8172); 
+            },
+            { timeout: 3000 }
+        );
+    });
+</script>
+</body>
+</html>

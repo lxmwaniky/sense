@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.E.N.S.E. | Hero Dashboard</title>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Roboto', sans-serif; }
+        #map { height: 100vh; width: 100%; background-color: #242f3e; }
+        .stats-overlay {
+            position: absolute; top: 20px; left: 20px; z-index: 5;
+            background: rgba(0, 0, 0, 0.8); color: white; padding: 15px;
+            border-radius: 8px; border: 1px solid #f00; pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stats-overlay">
+        <h2 style="margin:0; color:#f00;">S.E.N.S.E. Active Feed</h2>
+        <p id="status">Listening for Tingles...</p>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+        // 1. Configuration (Set your Project ID)
+        const firebaseConfig = { projectId: "musicstudy-ke" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 2. Connect to Local Emulator (Crucial for your current setup)
+        // This tells the browser to look at your terminal's Firestore, not the cloud.
+        connectFirestoreEmulator(db, '127.0.0.1', 8084);
+
+        let map;
+        const markers = [];
+
+        // 3. Initialize Google Maps
+        async function initMap() {
+            const { Map } = await google.maps.importLibrary("maps");
+            
+            map = new Map(document.getElementById("map"), {
+                center: { lat: -1.2863, lng: 36.8172 }, // Default to Nairobi
+                zoom: 13,
+                mapId: "SENSE_DASHBOARD_1", // Optional: Use for vector maps/styling
+                styles: [
+                    { "elementType": "geometry", "stylers": [ { "color": "#242f3e" } ] },
+                    { "elementType": "labels.text.fill", "stylers": [ { "color": "#746855" } ] },
+                    { "featureType": "road", "elementType": "geometry", "stylers": [ { "color": "#38414e" } ] }
+                ]
+            });
+
+            startListening();
+        }
+
+        // 4. Listen for real-time Firestore updates
+        function startListening() {
+            const tinglesCol = collection(db, "tingles");
+            const statusEl = document.getElementById("status");
+
+            onSnapshot(tinglesCol, (snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const data = change.doc.data();
+                        addMarker(data);
+                        statusEl.innerText = `Last Signal: ${new Date().toLocaleTimeString()}`;
+                    }
+                });
+            });
+        }
+
+        // 5. Add Pin to Map
+        function addMarker(data) {
+            const marker = new google.maps.Marker({
+                position: { lat: data.lat, lng: data.lng },
+                map: map,
+                title: "Emergency Signal",
+                animation: google.maps.Animation.DROP,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: '#f00',
+                    fillOpacity: 1,
+                    strokeColor: '#fff',
+                    strokeWeight: 2,
+                    scale: 10
+                }
+            });
+            markers.push(marker);
+            
+            // Pan map to latest signal
+            map.panTo({ lat: data.lat, lng: data.lng });
+        }
+
+        // Load Maps API
+        (function(g){var db,f,ca,m,p,q,t,s,u,v,a,b,e=function(){window.google.maps.importLibrary=function(a){return Promise.resolve(google.maps[a])}};if(g.google&&g.google.maps)e();else{f=function(a,b,d,h){var l=document.getElementsByTagName("script")[0];l.parentNode.insertBefore(a,l)};ca=function(a,b){var d=document.createElement("script");d.src=a;d.async=!0;d.defer=!0;f(d)};g.google=g.google||{};g.google.maps=g.google.maps||{};ca("https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap");e()}})(window);
+
+        window.initMap = initMap;
+    </script>
+</body>
+</html>
