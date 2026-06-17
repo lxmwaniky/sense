@@ -3,19 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Project S.E.N.S.E. | Emergency Signal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <title>S.E.N.S.E. | Emergency Signal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --google-blue: #4285F4;
-            --google-red: #EA4335;
-            --google-yellow: #FBBC05;
-            --google-green: #34A853;
-            --spider-red: #ff2e56;
-            --spider-blue: #0f3cb3;
-            --bg-dark: #070913;
-            --card-bg: rgba(15, 20, 35, 0.7);
-            --card-border: rgba(234, 67, 53, 0.25);
+            --spider-red: #E22127;
+            --spider-blue: #1A365D;
+            --bg-dark: #0A0D14;
+            --card-bg: rgba(20, 24, 33, 0.95);
+            --border-color: rgba(255, 255, 255, 0.08);
         }
 
         * {
@@ -30,255 +26,176 @@
             align-items: center;
             min-height: 100vh;
             background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(15, 60, 179, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(234, 67, 53, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 50% 50%, rgba(7, 9, 19, 1) 0%, rgba(15, 20, 35, 0.8) 100%);
-            font-family: 'Outfit', sans-serif;
-            color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #f7fafc;
             overflow: hidden;
             position: relative;
         }
 
-        #hud-canvas {
+        .cobweb {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
+            width: 180px;
+            height: 180px;
             pointer-events: none;
-            opacity: 0.4;
+            z-index: 2;
+            opacity: 0.12;
+            transition: opacity 0.5s ease;
         }
+        .cobweb.top-left { top: 0; left: 0; }
+        .cobweb.top-right { top: 0; right: 0; transform: scaleX(-1); }
+        .cobweb.bottom-left { bottom: 0; left: 0; transform: scaleY(-1); }
+        .cobweb.bottom-right { bottom: 0; right: 0; transform: scale(-1); }
 
         .sense-edge {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             pointer-events: none;
-            z-index: 2;
-            border: 0px solid transparent;
-            transition: border-width 0.3s ease, box-shadow 0.3s ease;
+            z-index: 1;
+            box-shadow: inset 0 0 0px rgba(226, 33, 39, 0);
+            transition: box-shadow 0.4s ease;
         }
-        
         .sense-edge.active {
-            border: 4px solid var(--google-red);
-            box-shadow: inset 0 0 40px rgba(234, 67, 53, 0.6);
-            animation: spidey-alert 0.6s infinite alternate;
+            box-shadow: inset 0 0 50px rgba(226, 33, 39, 0.4);
+            animation: sense-alert 1.2s infinite ease-in-out;
         }
 
-        @keyframes spidey-alert {
-            0% { box-shadow: inset 0 0 20px rgba(234, 67, 53, 0.3); border-color: rgba(234, 67, 53, 0.4); }
-            100% { box-shadow: inset 0 0 60px rgba(234, 67, 53, 0.8); border-color: var(--spider-red); }
+        @keyframes sense-alert {
+            0%, 100% { box-shadow: inset 0 0 30px rgba(226, 33, 39, 0.25); }
+            50% { box-shadow: inset 0 0 60px rgba(226, 33, 39, 0.55); }
         }
 
-        .console-card {
+        .console-container {
             position: relative;
             z-index: 10;
             background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 24px;
-            padding: 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 32px 24px;
             width: 90%;
-            max-width: 420px;
+            max-width: 380px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
             text-align: center;
-            box-shadow: 
-                0 20px 50px rgba(0, 0, 0, 0.5),
-                0 0 30px rgba(234, 67, 53, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease;
-        }
-
-        .console-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--google-blue), var(--google-red), var(--google-yellow), var(--google-green));
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
         }
 
         .header-section {
-            margin-bottom: 30px;
+            margin-bottom: 24px;
         }
 
         .app-title {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            letter-spacing: 2px;
-            background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 5px;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+            margin-bottom: 4px;
         }
 
         .app-subtitle {
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.4);
             text-transform: uppercase;
-            letter-spacing: 3px;
+            letter-spacing: 1.5px;
         }
 
-        .trigger-wrapper {
+        .button-wrapper {
             position: relative;
-            width: 220px;
-            height: 220px;
-            margin: 0 auto 30px auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .pulse-ring {
-            position: absolute;
-            border-radius: 50%;
-            border: 2px solid var(--google-red);
-            opacity: 0;
-            pointer-events: none;
-            width: 100%;
-            height: 100%;
-        }
-
-        .pulse-ring.active {
-            animation: pulse-out 2s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
-        }
-
-        .pulse-ring.active:nth-child(2) {
-            animation-delay: 0.6s;
-        }
-
-        .pulse-ring.active:nth-child(3) {
-            animation-delay: 1.2s;
-            border-color: var(--google-blue);
-        }
-
-        @keyframes pulse-out {
-            0% {
-                transform: scale(0.85);
-                opacity: 0.8;
-            }
-            100% {
-                transform: scale(1.4);
-                opacity: 0;
-            }
+            margin: 32px auto;
+            width: 140px;
+            height: 140px;
         }
 
         #spidey-btn {
             position: relative;
             z-index: 5;
-            width: 170px;
-            height: 170px;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
-            border: none;
-            background: radial-gradient(circle at 35% 35%, #ff4b6e 0%, #d3183b 50%, #850019 100%);
+            border: 1px solid rgba(226, 33, 39, 0.4);
+            background: radial-gradient(circle, #e22127 0%, #ba1217 100%);
             color: white;
             cursor: pointer;
-            outline: none;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            box-shadow: 
-                0 0 25px rgba(234, 67, 53, 0.6),
-                inset 0 0 20px rgba(255, 255, 255, 0.3),
-                0 10px 20px rgba(0, 0, 0, 0.4);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(226, 33, 39, 0.35);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
         }
 
         #spidey-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 
-                0 0 40px rgba(234, 67, 53, 0.85),
-                0 0 15px rgba(66, 133, 244, 0.4),
-                inset 0 0 25px rgba(255, 255, 255, 0.4);
+            transform: scale(1.03);
+            box-shadow: 0 12px 30px rgba(226, 33, 39, 0.5);
         }
 
         #spidey-btn:active {
-            transform: scale(0.96);
-            background: radial-gradient(circle at 35% 35%, #d3183b 0%, #850019 70%, #50000d 100%);
+            transform: scale(0.97);
         }
 
         .btn-icon {
-            width: 50px;
-            height: 50px;
-            margin-bottom: 8px;
+            width: 38px;
+            height: 38px;
+            margin-bottom: 6px;
             fill: #ffffff;
-            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
-            transition: transform 0.3s ease;
+            opacity: 0.95;
+            transition: transform 0.2s ease;
         }
 
         #spidey-btn:hover .btn-icon {
-            transform: scale(1.1) rotate(5deg);
+            transform: scale(1.05);
         }
 
         .btn-text {
-            font-family: 'Space Grotesk', sans-serif;
-            font-weight: 700;
-            font-size: 0.95rem;
-            letter-spacing: 1.5px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
         .status-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50px;
-            padding: 6px 16px;
-            font-size: 0.8rem;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            padding: 6px 14px;
+            font-size: 0.75rem;
             font-weight: 600;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 16px;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            background-color: var(--google-blue);
-            box-shadow: 0 0 8px var(--google-blue);
+            background-color: #4285F4;
         }
 
         .status-badge.searching {
-            border-color: var(--google-yellow);
-            color: var(--google-yellow);
+            border-color: #FBBC05;
+            color: #FBBC05;
         }
         .status-badge.searching .status-dot {
-            background-color: var(--google-yellow);
-            box-shadow: 0 0 8px var(--google-yellow);
+            background-color: #FBBC05;
             animation: pulse-dot 1s infinite alternate;
         }
 
         .status-badge.transmitting {
-            border-color: var(--google-red);
-            color: var(--google-red);
+            border-color: var(--spider-red);
+            color: var(--spider-red);
         }
         .status-badge.transmitting .status-dot {
-            background-color: var(--google-red);
-            box-shadow: 0 0 8px var(--google-red);
+            background-color: var(--spider-red);
             animation: pulse-dot 0.5s infinite alternate;
         }
 
         .status-badge.ready {
-            border-color: var(--google-green);
-            color: var(--google-green);
+            border-color: #34A853;
+            color: #34A853;
         }
         .status-badge.ready .status-dot {
-            background-color: var(--google-green);
-            box-shadow: 0 0 8px var(--google-green);
+            background-color: #34A853;
         }
 
         @keyframes pulse-dot {
@@ -286,26 +203,29 @@
             100% { opacity: 1; }
         }
 
-        .console-log {
+        .log-display {
             font-family: monospace;
             font-size: 0.75rem;
-            color: rgba(255, 255, 255, 0.4);
-            min-height: 20px;
-            padding: 8px;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.2);
+            color: rgba(255, 255, 255, 0.45);
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.03);
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .spinner {
             display: none;
-            width: 32px;
-            height: 32px;
-            border: 3px solid rgba(255, 255, 255, 0.2);
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             border-top-color: #ffffff;
-            animation: spin 1s linear infinite;
-            margin-bottom: 8px;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 6px;
         }
 
         @keyframes spin {
@@ -316,33 +236,54 @@
         .loading #spidey-btn .spinner { display: block; }
 
         @media (max-width: 480px) {
-            .console-card {
-                padding: 25px 20px;
-                max-width: 340px;
+            .console-container {
+                padding: 24px 16px;
+                max-width: 330px;
             }
-            .trigger-wrapper {
-                width: 180px;
-                height: 180px;
-                margin-bottom: 20px;
-            }
-            #spidey-btn {
-                width: 140px;
-                height: 140px;
-            }
-            .app-title {
-                font-size: 1.5rem;
+            .button-wrapper {
+                width: 120px;
+                height: 120px;
+                margin: 24px auto;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="sense-edge" id="spidey-sense-overlay"></div>
-    <canvas id="hud-canvas"></canvas>
+    <svg class="cobweb top-left" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,0 L100,0 M0,0 L0,100 M0,0 L80,80" stroke="currentColor" stroke-width="0.75" fill="none"/>
+        <path d="M20,0 A20,20 0 0,1 0,20" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M40,0 A40,40 0 0,1 0,40" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M60,0 A60,60 0 0,1 0,60" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M80,0 A80,80 0 0,1 0,80" fill="none" stroke="currentColor" stroke-width="0.5"/>
+    </svg>
+    <svg class="cobweb top-right" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,0 L100,0 M0,0 L0,100 M0,0 L80,80" stroke="currentColor" stroke-width="0.75" fill="none"/>
+        <path d="M20,0 A20,20 0 0,1 0,20" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M40,0 A40,40 0 0,1 0,40" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M60,0 A60,60 0 0,1 0,60" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M80,0 A80,80 0 0,1 0,80" fill="none" stroke="currentColor" stroke-width="0.5"/>
+    </svg>
+    <svg class="cobweb bottom-left" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,0 L100,0 M0,0 L0,100 M0,0 L80,80" stroke="currentColor" stroke-width="0.75" fill="none"/>
+        <path d="M20,0 A20,20 0 0,1 0,20" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M40,0 A40,40 0 0,1 0,40" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M60,0 A60,60 0 0,1 0,60" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M80,0 A80,80 0 0,1 0,80" fill="none" stroke="currentColor" stroke-width="0.5"/>
+    </svg>
+    <svg class="cobweb bottom-right" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,0 L100,0 M0,0 L0,100 M0,0 L80,80" stroke="currentColor" stroke-width="0.75" fill="none"/>
+        <path d="M20,0 A20,20 0 0,1 0,20" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M40,0 A40,40 0 0,1 0,40" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M60,0 A60,60 0 0,1 0,60" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M80,0 A80,80 0 0,1 0,80" fill="none" stroke="currentColor" stroke-width="0.5"/>
+    </svg>
 
-    <div class="console-card">
+    <div class="sense-edge" id="spidey-sense-overlay"></div>
+
+    <div class="console-container">
         <div class="header-section">
-            <h1 class="app-title">PROJECT S.E.N.S.E.</h1>
+            <h1 class="app-title">S.E.N.S.E.</h1>
             <p class="app-subtitle">Emergency Protocol Engine</p>
         </div>
 
@@ -351,12 +292,8 @@
             <span id="status-label">Engine Ready</span>
         </div>
 
-        <div class="trigger-wrapper">
-            <div class="pulse-ring active"></div>
-            <div class="pulse-ring active"></div>
-            <div class="pulse-ring active"></div>
-            
-            <button id="spidey-btn" type="button" aria-label="Send tingle signal">
+        <div class="button-wrapper">
+            <button id="spidey-btn" type="button" aria-label="Send emergency signal">
                 <div class="spinner" id="btn-spinner"></div>
                 <svg class="btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2C11.5 2 11 3.5 11 5V6.5C11 6.8 11.2 7 11.5 7H12.5C12.8 7 13 6.8 13 6.5V5C13 3.5 12.5 2 12 2Z"/>
@@ -366,27 +303,27 @@
                     <path d="M4.5 12C3.2 11.5 1.5 11.2 0.5 11C-0.1 10.9 -0.5 11.4 -0.5 12C-0.5 12.6 0 13 0.5 13.1C1.5 13.3 3.2 13.6 4.5 14C5 14.1 5.5 13.8 5.5 13C5.5 12.2 5 12.1 4.5 12Z"/>
                     <path d="M19.5 12C20.8 11.5 22.5 11.2 23.5 11C24.1 10.9 24.5 11.4 24.5 12C24.5 12.6 24 13 23.5 13.1C22.5 13.3 20.8 13.6 19.5 14C19 14.1 18.5 13.8 18.5 13C18.5 12.2 19 12.1 19.5 12Z"/>
                 </svg>
-                <span class="btn-text" id="btn-label">Send Tingle</span>
+                <span class="btn-text" id="btn-label">Emergency</span>
             </button>
         </div>
 
-        <div class="console-log" id="console-log">> System armed. Awaiting trigger.</div>
+        <div class="log-display" id="log-display">Awaiting trigger...</div>
     </div>
 
 <script>
-    // TODO: Update INGESTOR_URL and API_KEY before production deployment.
+    // TODO: Update configuration before production deployment
     const INGESTOR_URL = "http://localhost:8080/tingle";
     const API_KEY = "dev-secret-key"; 
     
     const btn = document.getElementById('spidey-btn');
     const btnSpinner = document.getElementById('btn-spinner');
     const btnLabel = document.getElementById('btn-label');
-    const consoleLog = document.getElementById('console-log');
+    const logDisplay = document.getElementById('log-display');
     const statusBadge = document.getElementById('status-badge');
     const statusLabel = document.getElementById('status-label');
     const spideySenseOverlay = document.getElementById('spidey-sense-overlay');
 
-    // Manages active status styles and log text
+    // Manages badge classes and feedback logs
     function updateState(state, text, logText) {
         statusBadge.classList.remove('ready', 'searching', 'transmitting');
         
@@ -402,18 +339,18 @@
             spideySenseOverlay.classList.add('active');
         } else {
             statusBadge.classList.add('ready');
-            btnLabel.innerText = "SEND TINGLE";
+            btnLabel.innerText = "EMERGENCY";
             btn.parentElement.classList.remove('loading');
             spideySenseOverlay.classList.remove('active');
         }
 
         if (text) statusLabel.innerText = text;
-        if (logText) consoleLog.innerText = `> ${logText}`;
+        if (logText) logDisplay.innerText = logText;
     }
 
-    // Handles transmission to ingestor service
+    // Handles transmission to GCP ingestor service
     async function sendSignal(lat, lng) {
-        updateState('transmitting', 'Broadcasting', `Signal ready. Pitching to: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+        updateState('transmitting', 'Broadcasting', `Broadcasting location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
         try {
             const response = await fetch(INGESTOR_URL, {
                 method: 'POST',
@@ -424,7 +361,7 @@
                 body: JSON.stringify({ lat, lng })
             });
             if (response.ok) {
-                updateState('ready', 'Engine Ready', 'SIGNAL SENT TO THE WEB!');
+                updateState('ready', 'Engine Ready', 'Signal sent successfully!');
                 alert("SIGNAL SENT TO THE WEB!");
             } else {
                 updateState('ready', 'Error Status', `Transmission failed: ${response.status}`);
@@ -438,7 +375,7 @@
     }
 
     btn.addEventListener('click', () => {
-        updateState('searching', 'Locating', 'Acquiring GPS Lock...');
+        updateState('searching', 'Locating', 'Acquiring GPS lock...');
 
         if (!navigator.geolocation) {
             console.warn("Geolocation not supported. Using Mock.");
@@ -457,52 +394,6 @@
             { timeout: 3000 }
         );
     });
-
-    const canvas = document.getElementById('hud-canvas');
-    const ctx = canvas.getContext('2d');
-    
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    // Renders the background radar grid
-    function drawGrid() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = 'rgba(66, 133, 244, 0.04)';
-        ctx.lineWidth = 1;
-
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const maxRadius = Math.max(canvas.width, canvas.height);
-
-        for (let r = 100; r < maxRadius; r += 100) {
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        ctx.strokeStyle = 'rgba(234, 67, 53, 0.03)';
-        const spokes = 12;
-        for (let i = 0; i < spokes; i++) {
-            const angle = (Math.PI * 2 / spokes) * i;
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.lineTo(
-                centerX + Math.cos(angle) * maxRadius,
-                centerY + Math.sin(angle) * maxRadius
-            );
-            ctx.stroke();
-        }
-    }
-    
-    function animate() {
-        drawGrid();
-        requestAnimationFrame(animate);
-    }
-    animate();
 </script>
 </body>
 </html>
