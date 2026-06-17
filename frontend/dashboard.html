@@ -222,17 +222,14 @@
                 constructor(position, map) {
                     super();
                     this.position = position;
+                    this.pingCount = 1;
                     this.setMap(map);
                 }
 
                 onAdd() {
                     this.div = document.createElement('div');
                     this.div.style.position = 'absolute';
-                    this.div.innerHTML = `
-                        <div class="beacon-core"></div>
-                        <div class="beacon-ring"></div>
-                        <div class="beacon-ring-outer"></div>
-                    `;
+                    this.updateDOM();
 
                     const styleId = 'beacon-styles';
                     if (!document.getElementById(styleId)) {
@@ -244,12 +241,14 @@
                                 position: absolute; transform: translate(-50%, -50%);
                                 box-shadow: 0 0 10px var(--google-red, #EA4335);
                                 border: 2px solid #ffffff;
+                                transition: all 0.3s ease;
                             }
                             .beacon-ring {
                                 width: 32px; height: 32px; border: 1.5px solid var(--google-red, #EA4335); border-radius: 50%;
                                 position: absolute; transform: translate(-50%, -50%);
                                 animation: beacon-pulse 2s infinite linear;
                                 opacity: 0;
+                                transition: all 0.3s ease;
                             }
                             .beacon-ring-outer {
                                 width: 54px; height: 54px; border: 1px dashed var(--google-blue, #4285F4); border-radius: 50%;
@@ -257,16 +256,56 @@
                                 animation: beacon-pulse 2s infinite linear;
                                 animation-delay: 0.6s;
                                 opacity: 0;
+                                transition: all 0.3s ease;
+                            }
+                            .beacon-badge {
+                                position: absolute;
+                                top: -20px;
+                                left: 14px;
+                                background: var(--google-red, #EA4335);
+                                color: #ffffff;
+                                font-size: 0.65rem;
+                                font-weight: 800;
+                                padding: 2px 7px;
+                                border-radius: 10px;
+                                border: 1.5px solid #ffffff;
+                                box-shadow: 0 0 10px rgba(234, 67, 53, 0.6);
+                                pointer-events: none;
+                                font-family: 'Plus Jakarta Sans', sans-serif;
+                                white-space: nowrap;
+                                animation: badge-bounce 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                             }
                             @keyframes beacon-pulse {
                                 0% { transform: translate(-50%, -50%) scale(0.25); opacity: 0.9; }
                                 100% { transform: translate(-50%, -50%) scale(1.2); opacity: 0; }
+                            }
+                            @keyframes badge-bounce {
+                                0% { transform: scale(0); opacity: 0; }
+                                100% { transform: scale(1); opacity: 1; }
                             }
                         `;
                         document.head.appendChild(style);
                     }
 
                     this.getPanes().overlayMouseTarget.appendChild(this.div);
+                }
+
+                updateDOM() {
+                    if (!this.div) return;
+                    const scaleMultiplier = Math.min(1 + (this.pingCount - 1) * 0.2, 2.5);
+                    const animationDuration = Math.max(2.0 - (this.pingCount - 1) * 0.25, 0.6);
+
+                    this.div.innerHTML = `
+                        <div class="beacon-core" style="transform: translate(-50%, -50%) scale(${scaleMultiplier});"></div>
+                        <div class="beacon-ring" style="animation-duration: ${animationDuration}s; width: ${32 * scaleMultiplier}px; height: ${32 * scaleMultiplier}px;"></div>
+                        <div class="beacon-ring-outer" style="animation-duration: ${animationDuration}s; width: ${54 * scaleMultiplier}px; height: ${54 * scaleMultiplier}px;"></div>
+                        ${this.pingCount > 1 ? `<div class="beacon-badge">${this.pingCount}</div>` : ''}
+                    `;
+                }
+
+                incrementPing() {
+                    this.pingCount++;
+                    this.updateDOM();
                 }
 
                 draw() {
@@ -314,17 +353,51 @@
             const countEl = document.getElementById("signal-count");
 
             onSnapshot(tinglesCol, (snapshot) => {
+                const bounds = new google.maps.LatLngBounds();
+                let hasCoords = false;
+
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === "added") {
                         const data = change.doc.data();
                         const pos = new google.maps.LatLng(data.lat, data.lng);
-                        if (BeaconOverlay) {
-                            const beacon = new BeaconOverlay(pos, map);
-                            beacons.push(beacon);
+
+                        let existingBeacon = beacons.find(b => {
+                            const latDiff = Math.abs(b.position.lat() - pos.lat());
+                            const lngDiff = Math.abs(b.position.lng() - pos.lng());
+                            return latDiff < 0.0001 && lngDiff < 0.0001;
+                        });
+
+                        if (existingBeacon) {
+                            existingBeacon.incrementPing();
+                        } else {
+                            if (BeaconOverlay) {
+                                const beacon = new BeaconOverlay(pos, map);
+                                beacons.push(beacon);
+                            }
                         }
                         statusEl.innerText = `${new Date().toLocaleTimeString()}`;
                     }
                 });
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.lat !== undefined && data.lng !== undefined) {
+                        bounds.extend(new google.maps.LatLng(data.lat, data.lng));
+                        hasCoords = true;
+                    }
+                });
+
+                if (hasCoords) {
+                    if (snapshot.size === 1) {
+                        const firstDoc = snapshot.docs[0].data();
+                        const pos = new google.maps.LatLng(firstDoc.lat, firstDoc.lng);
+                        map.setCenter(pos);
+                        map.setZoom(16);
+                    } else {
+                        map.fitBounds(bounds);
+                    }
+                }
+
                 countEl.innerText = snapshot.size;
             });
         }
