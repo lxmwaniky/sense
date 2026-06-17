@@ -154,48 +154,64 @@
         .status-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 30px;
-            padding: 6px 14px;
-            font-size: 0.75rem;
-            font-weight: 600;
+            padding: 8px 18px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
             color: rgba(255, 255, 255, 0.7);
             margin-bottom: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
         }
 
         .status-dot {
-            width: 6px;
-            height: 6px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background-color: #4285F4;
+            box-shadow: 0 0 8px #4285F4;
+            transition: all 0.3s ease;
         }
 
         .status-badge.searching {
-            border-color: #FBBC05;
+            border-color: rgba(251, 188, 5, 0.3);
+            background: rgba(251, 188, 5, 0.03);
             color: #FBBC05;
+            box-shadow: 0 0 15px rgba(251, 188, 5, 0.15);
         }
         .status-badge.searching .status-dot {
             background-color: #FBBC05;
+            box-shadow: 0 0 10px #FBBC05;
             animation: pulse-dot 1s infinite alternate;
         }
 
         .status-badge.transmitting {
-            border-color: var(--spider-red);
+            border-color: rgba(226, 33, 39, 0.3);
+            background: rgba(226, 33, 39, 0.03);
             color: var(--spider-red);
+            box-shadow: 0 0 15px rgba(226, 33, 39, 0.15);
         }
         .status-badge.transmitting .status-dot {
             background-color: var(--spider-red);
+            box-shadow: 0 0 10px var(--spider-red);
             animation: pulse-dot 0.5s infinite alternate;
         }
 
         .status-badge.ready {
-            border-color: #34A853;
+            border-color: rgba(52, 168, 83, 0.3);
+            background: rgba(52, 168, 83, 0.03);
             color: #34A853;
+            box-shadow: 0 0 15px rgba(52, 168, 83, 0.15);
         }
         .status-badge.ready .status-dot {
             background-color: #34A853;
+            box-shadow: 0 0 10px #34A853;
         }
 
         @keyframes pulse-dot {
@@ -287,9 +303,9 @@
             <p class="app-subtitle">Emergency Protocol Engine</p>
         </div>
 
-        <div class="status-badge" id="status-badge">
+        <div class="status-badge ready" id="status-badge">
             <div class="status-dot"></div>
-            <span id="status-label">Engine Ready</span>
+            <span id="status-label">STATUS: ONLINE</span>
         </div>
 
         <div class="button-wrapper">
@@ -350,7 +366,7 @@
 
     // Handles transmission to GCP ingestor service
     async function sendSignal(lat, lng) {
-        updateState('transmitting', 'Broadcasting', `Broadcasting location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+        updateState('transmitting', 'STATUS: BROADCASTING...', `Broadcasting location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
         try {
             const response = await fetch(INGESTOR_URL, {
                 method: 'POST',
@@ -361,21 +377,18 @@
                 body: JSON.stringify({ lat, lng })
             });
             if (response.ok) {
-                updateState('ready', 'Engine Ready', 'Signal sent successfully!');
-                alert("SIGNAL SENT TO THE WEB!");
+                updateState('ready', 'STATUS: ONLINE', 'Signal sent successfully!');
             } else {
-                updateState('ready', 'Error Status', `Transmission failed: ${response.status}`);
-                alert("Server error: " + response.status);
+                updateState('ready', 'STATUS: OFFLINE', `Transmission failed: ${response.status}`);
             }
         } catch (err) {
             console.error("Network error:", err);
-            updateState('ready', 'Offline', 'Connection issue. Check ingestor service.');
-            alert("Check if Ingestor is running on 8080!");
+            updateState('ready', 'STATUS: OFFLINE', 'Connection issue. Check ingestor service.');
         }
     }
 
     btn.addEventListener('click', () => {
-        updateState('searching', 'Locating', 'Acquiring GPS lock...');
+        updateState('searching', 'STATUS: ACQUIRING GPS...', 'Acquiring GPS lock...');
 
         if (!navigator.geolocation) {
             console.warn("Geolocation not supported. Using Mock.");

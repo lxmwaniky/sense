@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S.E.N.S.E. | Hero Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --google-blue: #4285F4;
@@ -16,20 +18,21 @@
             --border-color: rgba(255, 255, 255, 0.08);
         }
 
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-dark);
             color: #ffffff;
             overflow: hidden;
         }
 
-        #map { 
-            height: 100vh; 
-            width: 100%; 
-            background-color: #0c0f1d; 
+        #map {
+            height: 100vh;
+            width: 100%;
+            background-color: #0c0f1d;
         }
 
         .cobweb {
@@ -40,19 +43,28 @@
             z-index: 5;
             opacity: 0.12;
         }
-        .cobweb.top-left { top: 0; left: 0; }
-        .cobweb.top-right { top: 0; right: 0; transform: scaleX(-1); }
+
+        .cobweb.top-left {
+            top: 0;
+            left: 0;
+        }
+
+        .cobweb.top-right {
+            top: 0;
+            right: 0;
+            transform: scaleX(-1);
+        }
 
         .stats-overlay {
-            position: absolute; 
-            top: 20px; 
-            left: 20px; 
+            position: absolute;
+            top: 20px;
+            left: 20px;
             z-index: 10;
-            background: var(--card-bg); 
-            color: white; 
+            background: var(--card-bg);
+            color: white;
             padding: 24px;
-            border-radius: 16px; 
-            border: 1px solid var(--border-color); 
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
             width: calc(100% - 40px);
             max-width: 300px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
@@ -67,7 +79,7 @@
         }
 
         .hud-title {
-            margin: 0; 
+            margin: 0;
             font-size: 1.2rem;
             font-weight: 700;
             color: var(--google-red);
@@ -117,8 +129,13 @@
         }
 
         @keyframes pulse-dot {
-            0% { opacity: 0.4; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         @media (max-width: 600px) {
@@ -134,27 +151,29 @@
                 border-bottom: none;
                 padding: 20px;
             }
+
             #map {
                 height: calc(100vh - 160px);
             }
         }
     </style>
 </head>
+
 <body>
 
     <svg class="cobweb top-left" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,0 L100,0 M0,0 L0,100 M0,0 L80,80" stroke="currentColor" stroke-width="0.75" fill="none"/>
-        <path d="M20,0 A20,20 0 0,1 0,20" fill="none" stroke="currentColor" stroke-width="0.5"/>
-        <path d="M40,0 A40,40 0 0,1 0,40" fill="none" stroke="currentColor" stroke-width="0.5"/>
-        <path d="M60,0 A60,60 0 0,1 0,60" fill="none" stroke="currentColor" stroke-width="0.5"/>
-        <path d="M80,0 A80,80 0 0,1 0,80" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M0,0 L100,0 M0,0 L0,100 M0,0 L80,80" stroke="currentColor" stroke-width="0.75" fill="none" />
+        <path d="M20,0 A20,20 0 0,1 0,20" fill="none" stroke="currentColor" stroke-width="0.5" />
+        <path d="M40,0 A40,40 0 0,1 0,40" fill="none" stroke="currentColor" stroke-width="0.5" />
+        <path d="M60,0 A60,60 0 0,1 0,60" fill="none" stroke="currentColor" stroke-width="0.5" />
+        <path d="M80,0 A80,80 0 0,1 0,80" fill="none" stroke="currentColor" stroke-width="0.5" />
     </svg>
     <svg class="cobweb top-right" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,0 L100,0 M0,0 L0,100 M0,0 L80,80" stroke="currentColor" stroke-width="0.75" fill="none"/>
-        <path d="M20,0 A20,20 0 0,1 0,20" fill="none" stroke="currentColor" stroke-width="0.5"/>
-        <path d="M40,0 A40,40 0 0,1 0,40" fill="none" stroke="currentColor" stroke-width="0.5"/>
-        <path d="M60,0 A60,60 0 0,1 0,60" fill="none" stroke="currentColor" stroke-width="0.5"/>
-        <path d="M80,0 A80,80 0 0,1 0,80" fill="none" stroke="currentColor" stroke-width="0.5"/>
+        <path d="M0,0 L100,0 M0,0 L0,100 M0,0 L80,80" stroke="currentColor" stroke-width="0.75" fill="none" />
+        <path d="M20,0 A20,20 0 0,1 0,20" fill="none" stroke="currentColor" stroke-width="0.5" />
+        <path d="M40,0 A40,40 0 0,1 0,40" fill="none" stroke="currentColor" stroke-width="0.5" />
+        <path d="M60,0 A60,60 0 0,1 0,60" fill="none" stroke="currentColor" stroke-width="0.5" />
+        <path d="M80,0 A80,80 0 0,1 0,80" fill="none" stroke="currentColor" stroke-width="0.5" />
     </svg>
 
     <div class="stats-overlay">
@@ -182,20 +201,23 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
-        const firebaseConfig = { projectId: "musicstudy-ke" };
+        const firebaseConfig = { projectId: "sense-project" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:") {
+            connectFirestoreEmulator(db, "localhost", 8084);
+            console.log("Routing dashboard to local Firestore emulator.");
+        }
+
         let map;
         const beacons = [];
-        let BeaconOverlay; // Defined dynamically once google.maps is ready
+        let BeaconOverlay;
 
         async function initMap() {
             const { Map } = await google.maps.importLibrary("maps");
-            
-            // Define overlay class dynamically to prevent script-load ReferenceErrors
             BeaconOverlay = class extends google.maps.OverlayView {
                 constructor(position, map) {
                     super();
@@ -269,17 +291,17 @@
                 zoom: 13,
                 mapId: "SENSE_DASHBOARD_1",
                 styles: [
-                    { "elementType": "geometry", "stylers": [ { "color": "#0f1423" } ] },
-                    { "elementType": "labels.text.fill", "stylers": [ { "color": "#637b9d" } ] },
-                    { "elementType": "labels.text.stroke", "stylers": [ { "color": "#0b0e17" } ] },
-                    { "featureType": "administrative", "elementType": "geometry.stroke", "stylers": [ { "color": "#1f2940" } ] },
-                    { "featureType": "landscape.natural", "elementType": "geometry", "stylers": [ { "color": "#0d1220" } ] },
-                    { "featureType": "poi", "elementType": "geometry", "stylers": [ { "color": "#121a2e" } ] },
-                    { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [ { "color": "#637b9d" } ] },
-                    { "featureType": "road", "elementType": "geometry", "stylers": [ { "color": "#1b243b" } ] },
-                    { "featureType": "road", "elementType": "geometry.stroke", "stylers": [ { "color": "#131b2e" } ] },
-                    { "featureType": "road.highway", "elementType": "geometry", "stylers": [ { "color": "#EA4335" }, { "weight": 0.5 }, { "opacity": 0.4 } ] },
-                    { "featureType": "water", "elementType": "geometry", "stylers": [ { "color": "#080c14" } ] }
+                    { "elementType": "geometry", "stylers": [{ "color": "#0f1423" }] },
+                    { "elementType": "labels.text.fill", "stylers": [{ "color": "#637b9d" }] },
+                    { "elementType": "labels.text.stroke", "stylers": [{ "color": "#0b0e17" }] },
+                    { "featureType": "administrative", "elementType": "geometry.stroke", "stylers": [{ "color": "#1f2940" }] },
+                    { "featureType": "landscape.natural", "elementType": "geometry", "stylers": [{ "color": "#0d1220" }] },
+                    { "featureType": "poi", "elementType": "geometry", "stylers": [{ "color": "#121a2e" }] },
+                    { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [{ "color": "#637b9d" }] },
+                    { "featureType": "road", "elementType": "geometry", "stylers": [{ "color": "#1b243b" }] },
+                    { "featureType": "road", "elementType": "geometry.stroke", "stylers": [{ "color": "#131b2e" }] },
+                    { "featureType": "road.highway", "elementType": "geometry", "stylers": [{ "color": "#EA4335" }, { "weight": 0.5 }, { "opacity": 0.4 }] },
+                    { "featureType": "water", "elementType": "geometry", "stylers": [{ "color": "#080c14" }] }
                 ]
             });
 
@@ -307,18 +329,18 @@
             });
         }
 
-        (function(g){
-            var db,f,ca,m,p,q,t,s,u,v,a,b,e=function(){window.google.maps.importLibrary=function(a){return Promise.resolve(google.maps[a])}};
-            if(g.google&&g.google.maps)e();
-            else{
-                f=function(a,b,d,h){var l=document.getElementsByTagName("script")[0];l.parentNode.insertBefore(a,l)};
-                ca=function(a,b){var d=document.createElement("script");d.src=a;d.async=!0;d.defer=!0;f(d)};
-                g.google=g.google||{};
-                g.google.maps=g.google.maps||{};
+        (function (g) {
+            var db, f, ca, m, p, q, t, s, u, v, a, b, e = function () { window.google.maps.importLibrary = function (a) { return Promise.resolve(google.maps[a]) } };
+            if (g.google && g.google.maps) e();
+            else {
+                f = function (a, b, d, h) { var l = document.getElementsByTagName("script")[0]; l.parentNode.insertBefore(a, l) };
+                ca = function (a, b) { var d = document.createElement("script"); d.src = a; d.async = !0; d.defer = !0; f(d) };
+                g.google = g.google || {};
+                g.google.maps = g.google.maps || {};
                 var key = localStorage.getItem("GOOGLE_MAPS_API_KEY");
-                if(!key){
+                if (!key) {
                     key = prompt("Please enter your Google Maps API Key:");
-                    if(key){
+                    if (key) {
                         localStorage.setItem("GOOGLE_MAPS_API_KEY", key.trim());
                     }
                 }
@@ -330,4 +352,5 @@
         window.initMap = initMap;
     </script>
 </body>
+
 </html>

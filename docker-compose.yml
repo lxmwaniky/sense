@@ -1,0 +1,55 @@
+services:
+  pubsub-emulator:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    container_name: sense-pubsub-emulator
+    ports:
+      - "8085:8085"
+    command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8085
+
+  firestore-emulator:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    container_name: sense-firestore-emulator
+    ports:
+      - "8084:8084"
+    command: gcloud beta emulators firestore start --host-port=0.0.0.0:8084
+
+  pubsub-init:
+    build: ./ingestor-service
+    container_name: sense-pubsub-init
+    environment:
+      - PUBSUB_EMULATOR_HOST=pubsub-emulator:8085
+      - GOOGLE_CLOUD_PROJECT=sense-project
+    depends_on:
+      - pubsub-emulator
+    volumes:
+      - ./ingestor-service/pubsub-init.py:/app/pubsub-init.py
+    entrypoint: python /app/pubsub-init.py
+
+  ingestor-service:
+    build: ./ingestor-service
+    container_name: sense-ingestor-service
+    ports:
+      - "8080:8080"
+    command: uvicorn main:app --host 0.0.0.0 --port 8080
+    environment:
+      - GOOGLE_CLOUD_PROJECT=sense-project
+      - PUB_SUB_TOPIC_ID=emergency-beacons
+      - PUBSUB_EMULATOR_HOST=pubsub-emulator:8085
+      - API_KEY=dev-secret-key
+      - ALLOWED_ORIGINS=*
+    depends_on:
+      - pubsub-emulator
+
+  processor-service:
+    build: ./processor-service
+    container_name: sense-processor-service
+    ports:
+      - "8081:8081"
+    command: uvicorn main:app --host 0.0.0.0 --port 8081
+    environment:
+      - GOOGLE_CLOUD_PROJECT=sense-project
+      - FIRESTORE_COLLECTION=tingles
+      - FIRESTORE_EMULATOR_HOST=firestore-emulator:8084
+      - ALLOWED_ORIGINS=*
+    depends_on:
+      - firestore-emulator
