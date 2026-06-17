@@ -1,53 +1,439 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Project S.E.N.S.E. | Emergency</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Project S.E.N.S.E. | Emergency Signal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #1a1a1a; margin: 0; font-family: sans-serif; }
-        #spidey-btn { 
-            width: 200px; height: 200px; border-radius: 50%; border: 8px solid #f00;
-            background: #b30000; color: white; font-weight: bold; font-size: 1.5rem;
-            cursor: pointer; box-shadow: 0 0 20px rgba(255,0,0,0.5);
+        :root {
+            --google-blue: #4285F4;
+            --google-red: #EA4335;
+            --google-yellow: #FBBC05;
+            --google-green: #34A853;
+            --spider-red: #ff2e56;
+            --spider-blue: #0f3cb3;
+            --bg-dark: #070913;
+            --card-bg: rgba(15, 20, 35, 0.7);
+            --card-border: rgba(234, 67, 53, 0.25);
         }
-        #spidey-btn:active { transform: scale(0.95); background: #800000; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(15, 60, 179, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(234, 67, 53, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(7, 9, 19, 1) 0%, rgba(15, 20, 35, 0.8) 100%);
+            font-family: 'Outfit', sans-serif;
+            color: #ffffff;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Web HUD background */
+        #hud-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        /* Spidey-sense edge threat warning indicators */
+        .sense-edge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 2;
+            border: 0px solid transparent;
+            transition: border-width 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .sense-edge.active {
+            border: 4px solid var(--google-red);
+            box-shadow: inset 0 0 40px rgba(234, 67, 53, 0.6);
+            animation: spidey-alert 0.6s infinite alternate;
+        }
+
+        @keyframes spidey-alert {
+            0% { box-shadow: inset 0 0 20px rgba(234, 67, 53, 0.3); border-color: rgba(234, 67, 53, 0.4); }
+            100% { box-shadow: inset 0 0 60px rgba(234, 67, 53, 0.8); border-color: var(--spider-red); }
+        }
+
+        /* Glassmorphic console card */
+        .console-card {
+            position: relative;
+            z-index: 10;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(234, 67, 53, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease;
+        }
+
+        .console-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--google-blue), var(--google-red), var(--google-yellow), var(--google-green));
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+        }
+
+        .header-section {
+            margin-bottom: 30px;
+        }
+
+        .app-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .app-subtitle {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        /* Pulsing radar ring structure */
+        .trigger-wrapper {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 0 auto 30px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pulse-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid var(--google-red);
+            opacity: 0;
+            pointer-events: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .pulse-ring.active {
+            animation: pulse-out 2s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+        }
+
+        .pulse-ring.active:nth-child(2) {
+            animation-delay: 0.6s;
+        }
+
+        .pulse-ring.active:nth-child(3) {
+            animation-delay: 1.2s;
+            border-color: var(--google-blue);
+        }
+
+        @keyframes pulse-out {
+            0% {
+                transform: scale(0.85);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        /* Premium Spidey Trigger Button */
+        #spidey-btn {
+            position: relative;
+            z-index: 5;
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            border: none;
+            background: radial-gradient(circle at 35% 35%, #ff4b6e 0%, #d3183b 50%, #850019 100%);
+            color: white;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 
+                0 0 25px rgba(234, 67, 53, 0.6),
+                inset 0 0 20px rgba(255, 255, 255, 0.3),
+                0 10px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #spidey-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 
+                0 0 40px rgba(234, 67, 53, 0.85),
+                0 0 15px rgba(66, 133, 244, 0.4),
+                inset 0 0 25px rgba(255, 255, 255, 0.4);
+        }
+
+        #spidey-btn:active {
+            transform: scale(0.96);
+            background: radial-gradient(circle at 35% 35%, #d3183b 0%, #850019 70%, #50000d 100%);
+        }
+
+        .btn-icon {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 8px;
+            fill: #ffffff;
+            filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
+            transition: transform 0.3s ease;
+        }
+
+        #spidey-btn:hover .btn-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .btn-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 1.5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            text-transform: uppercase;
+        }
+
+        /* Status & Log info display */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--google-blue);
+            box-shadow: 0 0 8px var(--google-blue);
+        }
+
+        /* Dynamic classes for status states */
+        .status-badge.searching {
+            border-color: var(--google-yellow);
+            color: var(--google-yellow);
+        }
+        .status-badge.searching .status-dot {
+            background-color: var(--google-yellow);
+            box-shadow: 0 0 8px var(--google-yellow);
+            animation: pulse-dot 1s infinite alternate;
+        }
+
+        .status-badge.transmitting {
+            border-color: var(--google-red);
+            color: var(--google-red);
+        }
+        .status-badge.transmitting .status-dot {
+            background-color: var(--google-red);
+            box-shadow: 0 0 8px var(--google-red);
+            animation: pulse-dot 0.5s infinite alternate;
+        }
+
+        .status-badge.ready {
+            border-color: var(--google-green);
+            color: var(--google-green);
+        }
+        .status-badge.ready .status-dot {
+            background-color: var(--google-green);
+            box-shadow: 0 0 8px var(--google-green);
+        }
+
+        @keyframes pulse-dot {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        .console-log {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+            min-height: 20px;
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        /* Spinning loader logic */
+        .spinner {
+            display: none;
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 1s linear infinite;
+            margin-bottom: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading #spidey-btn .btn-icon { display: none; }
+        .loading #spidey-btn .spinner { display: block; }
     </style>
 </head>
 <body>
 
-    <button id="spidey-btn">SEND TINGLE</button>
+    <div class="sense-edge" id="spidey-sense-overlay"></div>
+    <canvas id="hud-canvas"></canvas>
+
+    <div class="console-card">
+        <div class="header-section">
+            <h1 class="app-title">PROJECT S.E.N.S.E.</h1>
+            <p class="app-subtitle">Emergency Protocol Engine</p>
+        </div>
+
+        <div class="status-badge" id="status-badge">
+            <div class="status-dot"></div>
+            <span id="status-label">Engine Ready</span>
+        </div>
+
+        <div class="trigger-wrapper">
+            <div class="pulse-ring active"></div>
+            <div class="pulse-ring active"></div>
+            <div class="pulse-ring active"></div>
+            
+            <button id="spidey-btn" type="button" aria-label="Send tingle signal">
+                <div class="spinner" id="btn-spinner"></div>
+                <svg class="btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <!-- High-tech geometric Spider icon -->
+                    <path d="M12 2C11.5 2 11 3.5 11 5V6.5C11 6.8 11.2 7 11.5 7H12.5C12.8 7 13 6.8 13 6.5V5C13 3.5 12.5 2 12 2Z"/>
+                    <path d="M12 8C9.2 8 7 10.2 7 13C7 14.5 7.6 15.8 8.7 16.8L6.2 19.3C5.8 19.7 5.8 20.3 6.2 20.7C6.6 21.1 7.2 21.1 7.6 20.7L10.1 18.2C10.7 18.7 11.3 19 12 19C12.7 19 13.3 18.7 13.9 18.2L16.4 20.7C16.8 21.1 17.4 21.1 17.8 20.7C18.2 20.3 18.2 19.7 17.8 19.3L15.3 16.8C16.4 15.8 17 14.5 17 13C17 10.2 14.8 8 12 8ZM12 16C10.3 16 9 14.7 9 13C9 11.3 10.3 10 12 10C13.7 10 15 11.3 15 13C15 14.7 13.7 16 12 16Z"/>
+                    <!-- Spider legs (geometric lines) -->
+                    <path d="M5.5 8C4.5 6.5 2.5 5.5 1.5 5C1 4.8 0.5 5 0.2 5.5C-0.1 6 0 6.5 0.5 6.8C1.5 7.3 3.2 8.3 4.2 9.5C4.5 9.8 4.9 10 5.2 10C5.5 10 5.8 9.8 6 9.5C6.3 9 6 8.5 5.5 8Z"/>
+                    <path d="M18.5 8C19.5 6.5 21.5 5.5 22.5 5C23 4.8 23.5 5 23.8 5.5C24.1 6 24 6.5 23.5 6.8C22.5 7.3 20.8 8.3 19.8 9.5C19.5 9.8 19.1 10 18.8 10C18.5 10 18.2 9.8 18 9.5C17.7 9 18 8.5 18.5 8Z"/>
+                    <path d="M4.5 12C3.2 11.5 1.5 11.2 0.5 11C-0.1 10.9 -0.5 11.4 -0.5 12C-0.5 12.6 0 13 0.5 13.1C1.5 13.3 3.2 13.6 4.5 14C5 14.1 5.5 13.8 5.5 13C5.5 12.2 5 12.1 4.5 12Z"/>
+                    <path d="M19.5 12C20.8 11.5 22.5 11.2 23.5 11C24.1 10.9 24.5 11.4 24.5 12C24.5 12.6 24 13 23.5 13.1C22.5 13.3 20.8 13.6 19.5 14C19 14.1 18.5 13.8 18.5 13C18.5 12.2 19 12.1 19.5 12Z"/>
+                </svg>
+                <span class="btn-text" id="btn-label">Send Tingle</span>
+            </button>
+        </div>
+
+        <div class="console-log" id="console-log">> System armed. Awaiting trigger.</div>
+    </div>
 
 <script>
+    // Config matches original variables
     const INGESTOR_URL = "http://localhost:8080/tingle";
+    const API_KEY = "dev-secret-key"; 
+    
     const btn = document.getElementById('spidey-btn');
+    const btnSpinner = document.getElementById('btn-spinner');
+    const btnLabel = document.getElementById('btn-label');
+    const consoleLog = document.getElementById('console-log');
+    const statusBadge = document.getElementById('status-badge');
+    const statusLabel = document.getElementById('status-label');
+    const spideySenseOverlay = document.getElementById('spidey-sense-overlay');
+
+    function updateState(state, text, logText) {
+        // Clear classes
+        statusBadge.classList.remove('ready', 'searching', 'transmitting');
+        
+        if (state === 'searching') {
+            statusBadge.classList.add('searching');
+            btnLabel.innerText = "LOCATING...";
+            btn.parentElement.classList.add('loading');
+            spideySenseOverlay.classList.remove('active');
+        } else if (state === 'transmitting') {
+            statusBadge.classList.add('transmitting');
+            btnLabel.innerText = "SENDING...";
+            btn.parentElement.classList.add('loading');
+            spideySenseOverlay.classList.add('active');
+        } else {
+            statusBadge.classList.add('ready');
+            btnLabel.innerText = "SEND TINGLE";
+            btn.parentElement.classList.remove('loading');
+            spideySenseOverlay.classList.remove('active');
+        }
+
+        if (text) statusLabel.innerText = text;
+        if (logText) consoleLog.innerText = `> ${logText}`;
+    }
 
     // Function to actually send the data
     async function sendSignal(lat, lng) {
-        console.log(`Sending Signal: ${lat}, ${lng}`);
+        updateState('transmitting', 'Broadcasting', `Signal ready. Pitching to: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
         try {
             const response = await fetch(INGESTOR_URL, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': API_KEY
+                },
                 body: JSON.stringify({ lat, lng })
             });
             if (response.ok) {
+                updateState('ready', 'Engine Ready', 'SIGNAL SENT TO THE WEB!');
                 alert("SIGNAL SENT TO THE WEB!");
             } else {
+                updateState('ready', 'Error Status', `Transmission failed: ${response.status}`);
                 alert("Server error: " + response.status);
             }
         } catch (err) {
             console.error("Network error:", err);
+            updateState('ready', 'Offline', 'Connection issue. Check ingestor service.');
             alert("Check if Ingestor is running on 8080!");
         }
-        btn.innerText = "SEND TINGLE";
     }
 
     btn.addEventListener('click', () => {
-        btn.innerText = "LOCATING...";
+        updateState('searching', 'Locating', 'Acquiring GPS Lock...');
 
         if (!navigator.geolocation) {
             console.warn("Geolocation not supported. Using Mock.");
-            sendSignal(-1.2863, 36.8172); // Nairobi fallback
+            setTimeout(() => sendSignal(-1.2863, 36.8172), 800); // Nairobi fallback
             return;
         }
 
@@ -56,13 +442,63 @@
                 sendSignal(pos.coords.latitude, pos.coords.longitude);
             },
             (err) => {
-                console.warn("Geolocation blocked/failed. Using Mock Location for Demo.");
-                // For your talk: Use a location near the Google office!
+                console.warn("Geolocation blocked/failed. Using Mock Location.");
                 sendSignal(-1.2863, 36.8172); 
             },
             { timeout: 3000 }
         );
     });
+
+    // High tech canvas line grid background
+    const canvas = document.getElementById('hud-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Draw a subtle spiderweb/cyber-grid pattern
+    function drawGrid() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'rgba(66, 133, 244, 0.04)';
+        ctx.lineWidth = 1;
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const maxRadius = Math.max(canvas.width, canvas.height);
+
+        // Radar/Sonar Concentric circles
+        for (let r = 100; r < maxRadius; r += 100) {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // Radiating spokes (Spiderweb-style)
+        ctx.strokeStyle = 'rgba(234, 67, 53, 0.03)';
+        const spokes = 12;
+        for (let i = 0; i < spokes; i++) {
+            const angle = (Math.PI * 2 / spokes) * i;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(
+                centerX + Math.cos(angle) * maxRadius,
+                centerY + Math.sin(angle) * maxRadius
+            );
+            ctx.stroke();
+        }
+    }
+    
+    // Animate subtle movement on background grid
+    let offset = 0;
+    function animate() {
+        drawGrid();
+        requestAnimationFrame(animate);
+    }
+    animate();
 </script>
 </body>
 </html>

@@ -4,13 +4,16 @@ import json
 import logging
 import sys
 from datetime import datetime
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from google.cloud import firestore
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 class JsonFormatter(logging.Formatter):
     def format(self, record):
@@ -33,12 +36,24 @@ logger = logging.getLogger("processor")
 
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT")
 COLLECTION_NAME = os.getenv("FIRESTORE_COLLECTION")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
 if not PROJECT_ID or not COLLECTION_NAME:
     raise RuntimeError("Environment variables GOOGLE_CLOUD_PROJECT and FIRESTORE_COLLECTION must be set.")
 
-app = FastAPI(title="Project S.E.N.S.E. Processor")
-db = firestore.Client(project=PROJECT_ID)
+db = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global db
+    db = firestore.Client(project=PROJECT_ID)
+    yield
+    if hasattr(db, 'close'):
+        db.close()
+    logger.info("Shutting down Firestore client...")
+
+app = FastAPI(title="Project S.E.N.S.E. Processor", lifespan=lifespan)
+app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_methods=["*"], allow_headers=["*"])
 
 # --- OpenTelemetry GCP Trace Setup ---
 try:
@@ -50,6 +65,11 @@ try:
     logger.info("OpenTelemetry Tracing initialized with Cloud Trace Exporter")
 except Exception as e:
     logger.warning(f"Could not initialize Tracing (are you missing GCP credentials?): {e}")
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=1, max=10))
+def add_to_firestore_with_retry(data: dict):
+    update_time, doc_ref = db.collection(COLLECTION_NAME).add(data)
+    return doc_ref
 
 @app.post("/pubsub")
 async def handle_pubsub_message(request: Request):
@@ -70,9 +90,7 @@ async def handle_pubsub_message(request: Request):
         decoded_data = base64.b64decode(payload["data"]).decode("utf-8")
         tingle_data = json.loads(decoded_data)
 
-        # Write to Firestore
-        # Let Firestore auto-generate the document ID
-        update_time, doc_ref = db.collection(COLLECTION_NAME).add(tingle_data)
+        doc_ref = add_to_firestore_with_retry(tingle_data)
 
         logger.info(f"SAVED: Document {doc_ref.id} in collection {COLLECTION_NAME}")
         return {"status": "persisted", "document_id": doc_ref.id}
@@ -90,7 +108,6 @@ async def liveness_probe():
 async def readiness_probe():
     """Readiness probe: verifies dependencies are accessible."""
     try:
-        # Verify Firestore client and configuration are ready
         if not db or not COLLECTION_NAME:
             raise ValueError("Firestore configuration or client missing")
         return {"status": "ready"}

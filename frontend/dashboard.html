@@ -4,21 +4,149 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>S.E.N.S.E. | Hero Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Roboto', sans-serif; }
-        #map { height: 100vh; width: 100%; background-color: #242f3e; }
+        :root {
+            --google-blue: #4285F4;
+            --google-red: #EA4335;
+            --google-yellow: #FBBC05;
+            --google-green: #34A853;
+            --bg-dark: #070913;
+            --card-bg: rgba(15, 20, 35, 0.8);
+            --card-border: rgba(234, 67, 53, 0.25);
+        }
+
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        #map { 
+            height: 100vh; 
+            width: 100%; 
+            background-color: #0c0f1d; 
+        }
+
+        /* Futuristic HUD stats panel */
         .stats-overlay {
-            position: absolute; top: 20px; left: 20px; z-index: 5;
-            background: rgba(0, 0, 0, 0.8); color: white; padding: 15px;
-            border-radius: 8px; border: 1px solid #f00; pointer-events: none;
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            z-index: 10;
+            background: var(--card-bg); 
+            color: white; 
+            padding: 25px;
+            border-radius: 16px; 
+            border: 1px solid var(--card-border); 
+            width: 320px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(234, 67, 53, 0.15);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            pointer-events: auto;
+        }
+
+        .stats-overlay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--google-blue), var(--google-red), var(--google-yellow), var(--google-green));
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+        }
+
+        .hud-header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 12px;
+        }
+
+        .hud-title {
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0; 
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--google-red);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .hud-subtitle {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 400;
+        }
+
+        .stat-value {
+            font-family: monospace;
+            font-weight: 600;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .pulse-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--google-green);
+            box-shadow: 0 0 8px var(--google-green);
+            margin-right: 6px;
+            animation: pulse-dot 1.5s infinite alternate;
+        }
+
+        @keyframes pulse-dot {
+            0% { opacity: 0.4; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
     <div class="stats-overlay">
-        <h2 style="margin:0; color:#f00;">S.E.N.S.E. Active Feed</h2>
-        <p id="status">Listening for Tingles...</p>
+        <div class="hud-header">
+            <h2 class="hud-title">S.E.N.S.E. Active Feed</h2>
+            <div class="hud-subtitle">Web-Tracker HUD Console</div>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Feed Status:</span>
+            <span class="stat-value" style="display: flex; align-items: center;">
+                <span class="pulse-indicator"></span>Listening
+            </span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Last Ping:</span>
+            <span class="stat-value" id="status">No signals yet</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">Active Signals:</span>
+            <span class="stat-value" id="signal-count">0</span>
+        </div>
     </div>
 
     <div id="map"></div>
@@ -33,10 +161,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 2. Connect to Local Emulator (Crucial for your current setup)
-        // This tells the browser to look at your terminal's Firestore, not the cloud.
-        connectFirestoreEmulator(db, '127.0.0.1', 8084);
-
         let map;
         const markers = [];
 
@@ -47,11 +171,19 @@
             map = new Map(document.getElementById("map"), {
                 center: { lat: -1.2863, lng: 36.8172 }, // Default to Nairobi
                 zoom: 13,
-                mapId: "SENSE_DASHBOARD_1", // Optional: Use for vector maps/styling
+                mapId: "SENSE_DASHBOARD_1",
                 styles: [
-                    { "elementType": "geometry", "stylers": [ { "color": "#242f3e" } ] },
-                    { "elementType": "labels.text.fill", "stylers": [ { "color": "#746855" } ] },
-                    { "featureType": "road", "elementType": "geometry", "stylers": [ { "color": "#38414e" } ] }
+                    { "elementType": "geometry", "stylers": [ { "color": "#0f1423" } ] },
+                    { "elementType": "labels.text.fill", "stylers": [ { "color": "#637b9d" } ] },
+                    { "elementType": "labels.text.stroke", "stylers": [ { "color": "#0b0e17" } ] },
+                    { "featureType": "administrative", "elementType": "geometry.stroke", "stylers": [ { "color": "#1f2940" } ] },
+                    { "featureType": "landscape.natural", "elementType": "geometry", "stylers": [ { "color": "#0d1220" } ] },
+                    { "featureType": "poi", "elementType": "geometry", "stylers": [ { "color": "#121a2e" } ] },
+                    { "featureType": "poi", "elementType": "labels.text.fill", "stylers": [ { "color": "#637b9d" } ] },
+                    { "featureType": "road", "elementType": "geometry", "stylers": [ { "color": "#1b243b" } ] },
+                    { "featureType": "road", "elementType": "geometry.stroke", "stylers": [ { "color": "#131b2e" } ] },
+                    { "featureType": "road.highway", "elementType": "geometry", "stylers": [ { "color": "#EA4335" }, { "weight": 0.5 }, { "opacity": 0.4 } ] },
+                    { "featureType": "water", "elementType": "geometry", "stylers": [ { "color": "#080c14" } ] }
                 ]
             });
 
@@ -62,15 +194,18 @@
         function startListening() {
             const tinglesCol = collection(db, "tingles");
             const statusEl = document.getElementById("status");
+            const countEl = document.getElementById("signal-count");
 
             onSnapshot(tinglesCol, (snapshot) => {
+                let count = 0;
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === "added") {
                         const data = change.doc.data();
                         addMarker(data);
-                        statusEl.innerText = `Last Signal: ${new Date().toLocaleTimeString()}`;
+                        statusEl.innerText = `${new Date().toLocaleTimeString()}`;
                     }
                 });
+                countEl.innerText = snapshot.size;
             });
         }
 
@@ -83,11 +218,11 @@
                 animation: google.maps.Animation.DROP,
                 icon: {
                     path: google.maps.SymbolPath.CIRCLE,
-                    fillColor: '#f00',
-                    fillOpacity: 1,
-                    strokeColor: '#fff',
+                    fillColor: '#EA4335',
+                    fillOpacity: 0.9,
+                    strokeColor: '#ffffff',
                     strokeWeight: 2,
-                    scale: 10
+                    scale: 12
                 }
             });
             markers.push(marker);
