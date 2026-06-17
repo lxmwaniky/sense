@@ -1,3 +1,7 @@
+import os
+os.environ["GOOGLE_CLOUD_PROJECT"] = "test-project"
+os.environ["FIRESTORE_COLLECTION"] = "tingles"
+
 import base64
 import json
 import pytest

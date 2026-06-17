@@ -1,3 +1,8 @@
+import os
+os.environ["GOOGLE_CLOUD_PROJECT"] = "test-project"
+os.environ["PUB_SUB_TOPIC_ID"] = "test-topic"
+os.environ["API_KEY"] = "dev-secret-key"
+
 import pytest
 from fastapi.testclient import TestClient
 from main import app
