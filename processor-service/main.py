@@ -6,6 +6,11 @@ import sys
 from datetime import datetime
 from fastapi import FastAPI, Request, HTTPException
 from google.cloud import firestore
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 class JsonFormatter(logging.Formatter):
     def format(self, record):
@@ -34,6 +39,17 @@ if not PROJECT_ID or not COLLECTION_NAME:
 
 app = FastAPI(title="Project S.E.N.S.E. Processor")
 db = firestore.Client(project=PROJECT_ID)
+
+# --- OpenTelemetry GCP Trace Setup ---
+try:
+    tracer_provider = TracerProvider()
+    trace.set_tracer_provider(tracer_provider)
+    cloud_trace_exporter = CloudTraceSpanExporter(project_id=PROJECT_ID)
+    tracer_provider.add_span_processor(BatchSpanProcessor(cloud_trace_exporter))
+    FastAPIInstrumentor.instrument_app(app)
+    logger.info("OpenTelemetry Tracing initialized with Cloud Trace Exporter")
+except Exception as e:
+    logger.warning(f"Could not initialize Tracing (are you missing GCP credentials?): {e}")
 
 @app.post("/pubsub")
 async def handle_pubsub_message(request: Request):
@@ -65,6 +81,19 @@ async def handle_pubsub_message(request: Request):
         logger.error(f"ERROR processing message: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/health")
-async def health():
-    return {"status": "healthy"}
+@app.get("/healthz")
+async def liveness_probe():
+    """Liveness probe: verifies the container is running."""
+    return {"status": "alive"}
+
+@app.get("/readyz")
+async def readiness_probe():
+    """Readiness probe: verifies dependencies are accessible."""
+    try:
+        # Verify Firestore client and configuration are ready
+        if not db or not COLLECTION_NAME:
+            raise ValueError("Firestore configuration or client missing")
+        return {"status": "ready"}
+    except Exception as e:
+        logger.error(f"Readiness check failed: {e}")
+        raise HTTPException(status_code=503, detail="Service not ready")
