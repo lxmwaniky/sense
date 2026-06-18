@@ -53,3 +53,11 @@ services:
       - ALLOWED_ORIGINS=*
     depends_on:
       - firestore-emulator
+
+  frontend:
+    image: nginx:alpine
+    container_name: sense-frontend
+    ports:
+      - "8000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html

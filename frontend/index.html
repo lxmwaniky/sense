@@ -401,10 +401,14 @@
                 sendSignal(pos.coords.latitude, pos.coords.longitude);
             },
             (err) => {
-                console.warn("Geolocation blocked/failed. Using Mock Location.");
+                console.warn("Geolocation blocked/failed. Error code:", err.code, "Message:", err.message, "Using Mock Location.");
                 sendSignal(-1.2863, 36.8172); 
             },
-            { timeout: 3000 }
+            { 
+                timeout: 10000, 
+                enableHighAccuracy: true,
+                maximumAge: 0 
+            }
         );
     });
 </script>
