@@ -207,9 +207,16 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:") {
-            connectFirestoreEmulator(db, "localhost", 8084);
-            console.log("Routing dashboard to local Firestore emulator.");
+        const isLocal = 
+            window.location.hostname === "localhost" || 
+            window.location.hostname === "127.0.0.1" || 
+            window.location.protocol === "file:" || 
+            /^[0-9.]+$/.test(window.location.hostname);
+
+        if (isLocal) {
+            const emulatorHost = window.location.hostname || "localhost";
+            connectFirestoreEmulator(db, emulatorHost, 8084);
+            console.log(`Routing dashboard to Firestore emulator at ${emulatorHost}:8084`);
         }
 
         let map;

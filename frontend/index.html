@@ -328,7 +328,8 @@
 
 <script>
     // TODO: Update configuration before production deployment
-    const INGESTOR_URL = "http://localhost:8080/tingle";
+    const host = window.location.hostname || "localhost";
+    const INGESTOR_URL = `http://${host}:8080/tingle`;
     const API_KEY = "dev-secret-key"; 
     
     const btn = document.getElementById('spidey-btn');
