@@ -154,10 +154,10 @@ Now that we've verified it locally, let's deploy the application live to Google 
 
 Instructions:
 1. Identify the active GCP Project ID (ask me if it is not configured).
-2. Spawn 3 subagents in parallel to handle the deployment workloads:
+2. Spawn 4 subagents in parallel to handle the deployment workloads:
    - Subagent A: Build and deploy `ingestor-service` to Google Cloud Run (ensure it scales to zero: min instances 0, maximum concurrency configured).
    - Subagent B: Build and deploy `processor-service` to Google Cloud Run (ensure it scales to zero: min instances 0).
    - Subagent C: Retrieve the Firebase Web SDK credentials using `npx firebase-tools apps:sdkconfig`, inject them into `dashboard.html`, and deploy the static assets to Firebase Hosting.
-3. Configure the live GCP Pub/Sub topic `emergency-beacons` and establish the push subscription pointing to the live URL of the deployed `processor-service`.
-4. Output the live URLs of the services and confirm the production setup is operational.
+   - Subagent D: Create the live GCP Pub/Sub topic `emergency-beacons`. Once the topic is successfully created, Subagent D must coordinate with the other parallel subagents. As soon as Subagent B completes and returns the live `processor-service` URL, Subagent D will automatically establish the live GCP Pub/Sub push subscription pointing to that endpoint's `/pubsub` path. Finally, once all backend microservices are up, Subagent D will append and inject the newly generated production URLs into our application's configuration files (such as replacing the local endpoint in `index.html` with the live Cloud Run ingestor URL) so that the entire production system is fully integrated.
+3. Output the live URLs of the services and confirm the production setup is operational.
 ```
