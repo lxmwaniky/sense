@@ -157,7 +157,14 @@ Instructions:
 2. Spawn 4 subagents in parallel to handle the deployment workloads:
    - Subagent A: Build and deploy `ingestor-service` to Google Cloud Run (ensure it scales to zero: min instances 0, maximum concurrency configured).
    - Subagent B: Build and deploy `processor-service` to Google Cloud Run (ensure it scales to zero: min instances 0).
-   - Subagent C: Retrieve the Firebase Web SDK credentials using `npx firebase-tools apps:sdkconfig`, inject them into `dashboard.html`, and deploy the static assets to Firebase Hosting.
+   - Subagent C: Perform custom Firebase Hosting provisioning and deployment to target `spidey-sense.web.app`:
+     a. Attempt to create the custom hosting site named `spidey-sense` using `npx firebase-tools hosting:sites:create spidey-sense --project <project-id>`.
+     b. If `spidey-sense` is taken, try a unique fallback such as `spidey-sense-hud-[suffix]`.
+     c. Apply a hosting deploy target alias using: `npx firebase-tools target:apply hosting spidey-sense-target <actual-site-id> --project <project-id>`.
+     d. Modify `firebase.json`'s `"hosting"` configuration block to specify `"target": "spidey-sense-target"`.
+     e. Retrieve the Firebase Web SDK credentials using `npx firebase-tools apps:sdkconfig`, inject them into `dashboard.html`.
+     f. Deploy the static assets using: `npx firebase-tools deploy --only hosting:spidey-sense-target --project <project-id>`.
+     g. Return the finalized live URL (e.g. `https://spidey-sense.web.app` or its fallback).
    - Subagent D: Create the live GCP Pub/Sub topic `emergency-beacons`. Once the topic is successfully created, Subagent D must coordinate with the other parallel subagents. As soon as Subagent B completes and returns the live `processor-service` URL, Subagent D will automatically establish the live GCP Pub/Sub push subscription pointing to that endpoint's `/pubsub` path. Finally, once all backend microservices are up, Subagent D will append and inject the newly generated production URLs into our application's configuration files (such as replacing the local endpoint in `index.html` with the live Cloud Run ingestor URL) so that the entire production system is fully integrated.
 3. Output the live URLs of the services and confirm the production setup is operational.
 ```
