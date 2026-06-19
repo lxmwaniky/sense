@@ -63,6 +63,7 @@ You can run the entire cloud-native stack locally using Docker Compose. This spi
 
 ### Prerequisites
 * **Docker & Docker Compose** installed.
+* **Google Cloud SDK (gcloud CLI)** installed.
 * **AGY (Antigravity CLI)** for autonomous deployment.
 * **Google Maps API Key** (for rendering the dashboard map).
 
