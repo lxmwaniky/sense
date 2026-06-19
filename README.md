@@ -96,3 +96,68 @@ This starts 6 containers:
 4. Click the **Emergency** button. 
 5. Watch the Console badge cycle through `ACQUIRING GPS...` $\rightarrow$ `BROADCASTING...` $\rightarrow$ `ONLINE`.
 6. Inspect the Dashboard—a glowing distress beacon will render in real-time. If you trigger multiple alerts in the same area, the beacon will scale in size and pulse faster, indicating a high-crime intensity zone.
+
+---
+
+## Antigravity (AGY) Live Demo Guide
+
+Follow these steps to demonstrate the **Antigravity (AGY)** autonomous agent capabilities during your live presentation. Each phase includes a copyable prompt optimized for the agent.
+
+### Start AGY
+Initialize the CLI in the project root folder:
+```bash
+agy
+```
+
+### Autonomous Codebase Analysis
+
+**Prompt:**
+```text
+Hey AGY, analyze this codebase in FAST MODE and explain the architecture of the project.
+
+Context:
+- The project is named S.E.N.S.E. (Signal Event & Notification Service Engine), built on a Spider-Man theme.
+- It is a cloud-native monorepo containing multiple backend services and a static frontend.
+
+Please:
+1. Map out the folder structure and discover the FastAPI backend services.
+2. Explain the communication topology between the components (how data flows from the frontend console to the database).
+3. Verify the local environment configuration (Docker Compose, emulators) and confirm if everything is aligned for local testing.
+```
+
+---
+
+### Local Verification & Browser Automation (Chrome DevTools + Scheduling)
+
+**Prompt:**
+```text
+Hey AGY, let's spin up the local stack and verify the real-time event flow.
+
+Instructions:
+1. Run the local application stack using `docker compose up -d`.
+2. Use your Chrome DevTools MCP tools to launch two browser pages:
+   - Dashboard: http://localhost:8000/dashboard.html
+   - Console: http://localhost:8000/index.html
+3. The Dashboard will trigger a browser prompt asking for the Google Maps API Key.
+   -> IMPORTANT: Do NOT ask me for this key in the chat. Instead, set a 10-second schedule timer or wait for 10 seconds to allow me to paste/type the key directly into the browser window.
+4. Once the timer expires, simulate a click on the "Emergency" button on the Console page (index.html).
+5. Verify that the Dashboard page (dashboard.html) dynamically receives the signal and updates the map with the pulsing beacon. Take a screenshot to confirm it worked!
+```
+
+---
+
+### Production Deployment (Parallel Subagents & GCP Tools)
+
+**Prompt:**
+```text
+Hey AGY, now that we've verified it locally, let's deploy the application live to Google Cloud.
+
+Instructions:
+1. Identify the active GCP Project ID (ask me if it is not configured).
+2. Spawn 3 subagents in parallel to handle the deployment workloads:
+   - Subagent A: Build and deploy `ingestor-service` to Google Cloud Run (ensure it scales to zero: min instances 0, maximum concurrency configured).
+   - Subagent B: Build and deploy `processor-service` to Google Cloud Run (ensure it scales to zero: min instances 0).
+   - Subagent C: Retrieve the Firebase Web SDK credentials using `npx firebase-tools apps:sdkconfig`, inject them into `dashboard.html`, and deploy the static assets to Firebase Hosting.
+3. Configure the live GCP Pub/Sub topic `emergency-beacons` and establish the push subscription pointing to the live URL of the deployed `processor-service`.
+4. Output the live URLs of the services and confirm the production setup is operational.
+```
