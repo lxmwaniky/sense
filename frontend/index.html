@@ -81,6 +81,40 @@
             margin-bottom: 24px;
         }
 
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 24px;
+            gap: 4px;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-tab.active {
+            background: rgba(226, 33, 39, 0.15);
+            color: var(--spider-red);
+            border: 1px solid rgba(226, 33, 39, 0.25);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+        }
+
         .app-title {
             font-size: 1.5rem;
             font-weight: 700;
@@ -301,6 +335,11 @@
         <div class="header-section">
             <h1 class="app-title">S.E.N.S.E.</h1>
             <p class="app-subtitle">Emergency Protocol Engine</p>
+        </div>
+
+        <div class="nav-tabs">
+            <a href="index.html" class="nav-tab active">Console</a>
+            <a href="dashboard.html" class="nav-tab">HUD Map</a>
         </div>
 
         <div class="status-badge ready" id="status-badge">

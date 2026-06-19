@@ -113,10 +113,10 @@ agy
 
 **Prompt:**
 ```text
-Hey AGY, analyze this codebase in FAST MODE and explain the architecture of the project.
+Hey AGY, analyze this codebase and explain the architecture of the project.
 
 Context:
-- The project is named S.E.N.S.E. (Signal Event & Notification Service Engine), built on a Spider-Man theme.
+- The project is named S.E.N.S.E. (Signal Event & Notification Service Engine)
 - It is a cloud-native monorepo containing multiple backend services and a static frontend.
 
 Please:
@@ -131,11 +131,11 @@ Please:
 
 **Prompt:**
 ```text
-Hey AGY, let's spin up the local stack and verify the real-time event flow.
+Let's spin up the local stack and verify the real-time event flow with docker compose up -d command.
 
 Instructions:
 1. Run the local application stack using `docker compose up -d`.
-2. Use your Chrome DevTools MCP tools to launch two browser pages:
+2. Use your Chrome DevTools MCP tools to launch two browser pages(setup the MCP Server if not available using this guide - https://developer.chrome.com/docs/devtools/agents/get-started:
    - Dashboard: http://localhost:8000/dashboard.html
    - Console: http://localhost:8000/index.html
 3. The Dashboard will trigger a browser prompt asking for the Google Maps API Key.
@@ -150,7 +150,7 @@ Instructions:
 
 **Prompt:**
 ```text
-Hey AGY, now that we've verified it locally, let's deploy the application live to Google Cloud.
+Now that we've verified it locally, let's deploy the application live to Google Cloud.
 
 Instructions:
 1. Identify the active GCP Project ID (ask me if it is not configured).
