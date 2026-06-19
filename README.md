@@ -15,14 +15,7 @@
 
 S.E.N.S.E. splits ingestion from persistence using an asynchronous messaging topology. This ensures high throughput, zero message loss, and sub-millisecond real-time sync.
 
-```mermaid
-graph LR
-    User[Web HUD Console] -->|HTTP POST| Ingestor[Ingestor Service]
-    Ingestor -->|Publish| PubSub((GCP Pub/Sub))
-    PubSub -->|Push Subscription| Processor[Processor Service]
-    Processor -->|Write| Firestore[(Cloud Firestore)]
-    Firestore -.->|WebSockets Live Sync| Dashboard[Dashboard HUD Map]
-```
+![alt text](image.png)
 
 ### 1. Ingestion Layer (`ingestor-service`)
 * **Technology**: FastAPI running inside a serverless **Google Cloud Run** container.
