@@ -25,7 +25,7 @@ def initialize_emulator():
             name=sub_path,
             topic=topic_path,
             push_config=pubsub_v1.types.PushConfig(
-                push_endpoint="http://processor-service:8081/pubsub"
+                push_endpoint="http://processor-service:8080/pubsub"
             )
         )
         print("Created Push Subscription pointing to processor-service")
